@@ -1,6 +1,7 @@
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
+from w3lib.html import remove_tags
 
 ProfileURLS = []
 
@@ -64,7 +65,7 @@ class ProfilelinksSpider(CrawlSpider):
         tableHeaderXPath = "./thead/tr/th/text()"
         tableTBodyXPath = "./tbody"
         tRowsXPath = './tr'
-        tDXPath = './td/span/text()'
+        tDXPath = './td/span'
 
         # Data
         table = response.xpath(overallTableXPath)
@@ -73,7 +74,13 @@ class ProfilelinksSpider(CrawlSpider):
 
         tbody = table.xpath(tableTBodyXPath)
         trows = tbody.xpath(tRowsXPath)
-        tData = [trow.xpath(tDXPath).extract() for trow in trows]
+
+        # TData extraction 
+        tData = []
+        for trow in trows:
+            trowData = [remove_tags(td).strip() for td in trow.xpath(tDXPath).extract()]
+            tData.append(trowData)
+        # tData = [trow.xpath(tDXPath).extract() for trow in trows]
 
         # Final Dataset 
         player_data = tData.insert(0, headers)

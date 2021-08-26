@@ -1,10 +1,10 @@
 import scrapy
-
+from w3lib.html import remove_tags
 
 class DataextractionSpider(scrapy.Spider):
     name = 'DataExtraction'
     allowed_domains = ['espncricinfo.com']
-    start_urls = ["https://www.espncricinfo.com/player/virat-kohli-253802"]
+    start_urls = ["https://www.espncricinfo.com/player/sachin-tendulkar-35320"]
 
     def parse(self, response):
         url = response.url
@@ -14,7 +14,7 @@ class DataextractionSpider(scrapy.Spider):
         tableHeaderXPath = "./thead/tr/th/text()"
         tableTBodyXPath = "./tbody"
         tRowsXPath = './tr'
-        tDXPath = './td/span/text()'
+        tDXPath = './td/span'
 
         # Data
         table = response.xpath(overallTableXPath)
@@ -23,11 +23,19 @@ class DataextractionSpider(scrapy.Spider):
 
         tbody = table.xpath(tableTBodyXPath)
         trows = tbody.xpath(tRowsXPath)
-        tData = [trow.xpath(tDXPath).extract() for trow in trows]
+
+        # Data extraction 
+        tData = []
+        for trow in trows:
+            trowData = [remove_tags(td).strip() for td in trow.xpath(tDXPath).extract()]
+            tData.append(trowData)
+
+        # tData = [[td] for trow in trows for td in  trow.xpath(tDXPath).extract()]
+        print(tData)
 
         # Final Dataset 
         player_data = tData.insert(0, headers)
-        print("headers;", headers)
+        # print("headers;", headers)
         print("player_Data", tData)
 
 
